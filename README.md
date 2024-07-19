@@ -24,6 +24,7 @@ To address these challenges, we propose a multi-faceted approach:
 - **Versatile Deployment:** Adapt the system for various industrial environments.
 
 ## Why Neuro Optix?
+![Main Overview](https://github.com/EngrAwab/Robo_rumble/blob/main/img/Copy%20of%20EME.png)
 Neuro Optix offers several advantages over traditional safety measures:
 - **Mobility:** Unlike stationary cameras, Neuro Optix can navigate diverse terrains, providing dynamic, real-time surveillance.
 - **AI Technology:** Continuously monitors and analyzes surroundings to prevent collisions and enhance safety.
@@ -32,19 +33,23 @@ Neuro Optix offers several advantages over traditional safety measures:
 ## Unveiling Neuro Optix
 ### Designing
 The initial design of Neuro Optix involves crafting the robotic car's body using AutoCAD software, focusing on durability and functionality.
+![Designing](https://github.com/EngrAwab/NeuroOptix/blob/main/img/Design.jpg)
 
 ### 3D Printing & Laser Cutting
 Components are designed using CAD software, 3D-printed for precision, and acrylic sheets are laser-cut to enhance structural support and durability.
 
+![3D Printing & Laser Cutting](https://github.com/EngrAwab/NeuroOptix/blob/main/img/cut.jpg)
 ### Soldering
 Wires of DC motors are soldered to ensure reliable electrical connections crucial for the car's operational integrity.
+![Soldering](https://github.com/EngrAwab/NeuroOptix/blob/main/img/robot%20.jpg)
 
-### Assembly
+### Components to Assemble
 Components are assembled methodically to ensure compatibility and functionality, resulting in a robust framework ready for hardware integration.
-
+![Assembly](https://github.com/EngrAwab/NeuroOptix/blob/main/img/All%20components.jpg)
 ## Hardware Components
 ### Kria KR260
 The Kria KR260 is a high-performance FPGA kit from Xilinx (now AMD), providing powerful processing capabilities for AI and machine learning tasks.
+![Kria](https://github.com/EngrAwab/NeuroOptix/blob/main/img/KRIA.jpg)
 
 ### OAK-D Camera
 The OAK-D Lite is a compact AI vision system built on the Myriad X VPU from Intel. It provides real-time depth sensing, object detection, and AI processing capabilities.
@@ -75,9 +80,8 @@ Interfaces with the OAK-D Lite to perform advanced computer vision tasks, levera
 A central tool for managing multiple OAK-D Lite devices, handling video feeds, deploying AI models, and managing network interactions.
 
 ## Block Diagram
-```
-![Block Diagram](Final.png)
-```
+![Block Diagram](https://github.com/EngrAwab/NeuroOptix/blob/main/img/Block%20Diagram%20.jpg)
+
 The block diagram illustrates the data flow from the OAK-D camera through KRIA processing to motor control and visualization.
 
 ## KRIA Setup
@@ -162,13 +166,14 @@ python3 dpu.py
 
 ## Features
 ### Fire Detection
-Using OpenCV's image processing algorithms, Neuro Optix detects flames in real-time, ensuring swift identification of fire outbreaks and enabling immediate preventive measures.
-
+Using OpenCV's image processing algorithms, Neuro Optix detects flames in real-time, ensuring swift identification of fire outbreaks and enabling immediate preventive measures. We made a fire by ourself to test our model and here are the results. 
+![Fire](https://github.com/EngrAwab/NeuroOptix/blob/main/img/Fire%20detection%20.jpg)
 ### Helmet Detection
-The system accurately detects whether workers are wearing helmets in real-time, ensuring compliance with safety regulations.
-
+The system accurately detects whether workers are wearing helmets in real-time, ensuring compliance with safety regulations. Unfortunately we were unable to visit the safety site so we conducted this expereiment at video taken from interenet.
+![Helmet](https://github.com/EngrAwab/NeuroOptix/blob/main/img/Helmet%20detection%20.jpg)
 ### Distance Measuring
-The OAK-D AI camera measures distances between objects using its stereo pair of global shutter cameras, providing accurate depth information.
+The OAK-D AI camera measures distances between objects using its stereo pair of global shutter cameras, providing accurate depth information. We can measure distance up to 7m accurately.
+![Block Diagram](https://github.com/EngrAwab/NeuroOptix/blob/main/img/DSistance%20measuring.jpg)
 
 ## Results and Analysis
 Neuro Optix continuously monitors worker compliance with safety protocols and detects potential hazards. OpenCV's advanced image processing capabilities enhance the robotic arm's functionality in tasks requiring precise object handling.
@@ -178,10 +183,6 @@ Neuro Optix continuously monitors worker compliance with safety protocols and de
 - **Monitoring Workers at Heights:** Drones will provide a holistic view of the construction site, enhancing safety.
 - **Quality Assurance:** Drones will assist in quality inspections from above.
 
-### Transition to Kria KR260
-- **Adopting Kria KR260:** Replacing Raspberry Pi with Kria KR260 will boost processing power.
-- **Enhanced AI Processing:** Improved efficiency in running AI models.
-- **Advanced Video Processing:** Efficient handling and transmission of video feeds.
 
 These future enhancements aim to extend the system’s functionality, ensuring safer and more efficient monitoring on construction sites.
 
