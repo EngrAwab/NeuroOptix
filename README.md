@@ -24,7 +24,6 @@ To address these challenges, we propose a multi-faceted approach:
 - **Versatile Deployment:** Adapt the system for various industrial environments.
 
 ## Why Neuro Optix?
-![Main Overview](https://github.com/EngrAwab/Robo_rumble/blob/main/img/Copy%20of%20EME.png)
 Neuro Optix offers several advantages over traditional safety measures:
 - **Mobility:** Unlike stationary cameras, Neuro Optix can navigate diverse terrains, providing dynamic, real-time surveillance.
 - **AI Technology:** Continuously monitors and analyzes surroundings to prevent collisions and enhance safety.
