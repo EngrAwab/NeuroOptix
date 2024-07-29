@@ -1,6 +1,6 @@
 from pynq_dpu import DpuOverlay
 overlay = DpuOverlay("dpu.bit")
-
+import depthai as dai
 import os
 import time
 import numpy as np
@@ -9,11 +9,11 @@ import random
 import colorsys
 from matplotlib.patches import Rectangle
 import matplotlib.pyplot as plt
-
+import sys
 # Load the model
-overlay.load_model("tf_yolov3_voc.xmodel")
+overlay.load_model("yolov5_compiled.xmodel")
 
-anchor_list = [10,13,16,30,33,23,30,61,62,45,59,119,116,90,156,198,373,326]
+anchor_list = [12,16, 19,36, 40,28, 36,75, 76,55, 72,146, 142,110, 192,243, 459,401] 
 anchor_float = [float(x) for x in anchor_list]
 anchors = np.array(anchor_float).reshape(-1, 2)
 
@@ -23,7 +23,7 @@ def get_class(classes_path):
     class_names = [c.strip() for c in class_names]
     return class_names
 
-classes_path = "img/voc_classes.txt"
+classes_path = "class.txt"
 class_names = get_class(classes_path)
 
 num_classes = len(class_names)
@@ -243,15 +243,73 @@ def run(frame, display=False):
             return False
     print("Number of detected objects: {}".format(len(boxes)))
     return True
+If you wannt to run on webcam
+# cap = cv2.VideoCapture(0)
 
-cap = cv2.VideoCapture(0)
+# while cap.isOpened():
+#     ret, frame = cap.read()
+#     if not ret:
+#         break
+#     if not run(frame, display=True):
+#         break
+If you want to run using OAK-D
 
-while cap.isOpened():
-    ret, frame = cap.read()
-    if not ret:
-        break
-    if not run(frame, display=True):
-        break
+syncNN = True
 
+# Create pipeline
+pipeline = dai.Pipeline()
+
+# Define sources and outputs
+camRgb = pipeline.createColorCamera()
+# detectionNetwork = pipeline.create(dai.node.YoloDetectionNetwork)
+xoutRgb = pipeline.createXLinkOut()
+# nnOut = pipeline.create(dai.node.XLinkOut)
+
+xoutRgb.setStreamName("rgb")
+# nnOut.setStreamName("nn")
+
+# Properties
+camRgb.setPreviewSize(416, 416)
+camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
+camRgb.setInterleaved(False)
+camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
+camRgb.setFps(60)
+camRgb.preview.link(xoutRgb.input)
+  # Codec for saving video (XVID is a common choice)
+# fourcc = cv2.VideoWriter_fourcc(*'H265')  # H.265 codec
+
+# Define the codec for H.265 (HEVC) video
+
+# Create a VideoWriter object to save the video in .avi format with H.265 codec
+# out = cv2.VideoWriter('output.avi', fourcc, 20.0, (640, 480))  # Change filename, frame rate, and resolution as needed
+
+with dai.Device(pipeline) as device:
+
+    # Output queues will be used to get the rgb frames and nn data from the outputs defined above
+    qRgb = device.getOutputQueue(name="rgb")
+    startTime = time.monotonic()
+    color2 = (255, 255, 255)
+    counter =0         
+
+    while True:
+        
+        inRgb = qRgb.get()
+
+        if inRgb is not None:
+            frame = inRgb.getCvFrame()
+            cv2.putText(frame, "NN fps: {:.2f}".format(counter / (time.monotonic() - startTime)),
+                        (2, frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4, color2)
+
+        
+
+        if frame is not None:
+            run(frame, display=True) //calling DPU Model
+            
+            counter+=1
+            # displayFrame("rgb", frame)
+
+        if cv2.waitKey(1) == ord('q'):
+            break
+frame.release()
 cap.release()
 cv2.destroyAllWindows()
