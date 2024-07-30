@@ -1,5 +1,4 @@
 from pynq_dpu import DpuOverlay
-overlay = DpuOverlay("dpu.bit")
 import depthai as dai
 import os
 import time
@@ -11,8 +10,8 @@ from matplotlib.patches import Rectangle
 import matplotlib.pyplot as plt
 import sys
 # Load the model
+overlay = DpuOverlay("dpu.bit")
 overlay.load_model("yolov5_compiled.xmodel")
-
 anchor_list = [12,16, 19,36, 40,28, 36,75, 76,55, 72,146, 142,110, 192,243, 459,401] 
 anchor_float = [float(x) for x in anchor_list]
 anchors = np.array(anchor_float).reshape(-1, 2)
@@ -198,42 +197,43 @@ def evaluate(yolo_outputs, image_shape, class_names, anchors):
     return boxes_, scores_, classes_
 
 dpu = overlay.runner
-
 inputTensors = dpu.get_input_tensors()
 outputTensors = dpu.get_output_tensors()
 
 shapeIn = tuple(inputTensors[0].dims)
-shapeOut0 = (tuple(outputTensors[0].dims)) # (1, 13, 13, 75)
-shapeOut1 = (tuple(outputTensors[1].dims)) # (1, 26, 26, 75)
-shapeOut2 = (tuple(outputTensors[2].dims)) # (1, 52, 52, 75)
+shapeOut0 = (tuple(outputTensors[0].dims))
+shapeOut1 = (tuple(outputTensors[1].dims))
+shapeOut2 = (tuple(outputTensors[2].dims))
 
-outputSize0 = int(outputTensors[0].get_data_size() / shapeIn[0]) # 12675
-outputSize1 = int(outputTensors[1].get_data_size() / shapeIn[0]) # 50700
-outputSize2 = int(outputTensors[2].get_data_size() / shapeIn[0]) # 202800
+outputSize0 = int(outputTensors[0].get_data_size() / shapeIn[0])
+outputSize1 = int(outputTensors[1].get_data_size() / shapeIn[0])
+outputSize2 = int(outputTensors[2].get_data_size() / shapeIn[0])
 
-input_data = [np.empty(shapeIn, dtype=np.float32, order="C")]
-output_data = [np.empty(shapeOut0, dtype=np.float32, order="C"),
-               np.empty(shapeOut1, dtype=np.float32, order="C"),
-               np.empty(shapeOut2, dtype=np.float32, order="C")]
+input_data = [np.empty(shapeIn, dtype=np.int8, order="C")]
+output_data = [np.empty(shapeOut0, dtype=np.int8, order="C"), 
+               np.empty(shapeOut1, dtype=np.int8, order="C"),
+               np.empty(shapeOut2, dtype=np.int8, order="C")]
 image = input_data[0]
 
 def run(frame, display=False):
     # Pre-processing
-    image_size = frame.shape[:2]
-    image_data = np.array(pre_process(frame, (416, 416)), dtype=np.float32)
-
-    # Fetch data to DPU and trigger it
-    image[0,...] = image_data.reshape(shapeIn[1:])
-    job_id = dpu.execute_async(input_data, output_data)
+    im = letterbox(frame, new_shape=(960,960), stride=32)[0]
+    im = im.transpose((2, 0, 1))  # HWC to CHW
+    im = np.ascontiguousarray(im)  # contiguous
+    im = np.transpose(im,(1, 2, 0)).astype(np.float32) / 255 * (2**6) # norm & quant
+    if len(im.shape) == 3:
+            im = im[None]  # expand for batch dim
+    image[0,...] = im.reshape(shapeIn[1:])
+    job_id = dpu.execute_async(input_data, output_data) # image below is input_data[0]
     dpu.wait(job_id)
 
     # Retrieve output data
-    conv_out0 = np.reshape(output_data[0], shapeOut0)
-    conv_out1 = np.reshape(output_data[1], shapeOut1)
-    conv_out2 = np.reshape(output_data[2], shapeOut2)
+    conv_out0 = np.transpose(output_data[0].astype(np.float32) / 4, (0, 3, 1, 2)).view(1, 3, 12, 120, 120).transpose(0, 1, 3, 4, 2)
+    conv_out1 = np.transpose(output_data[1].astype(np.float32) / 8, (0, 3, 1, 2)).view(1, 3, 12, 60, 60).transpose(0, 1, 3, 4, 2)
+    conv_out2 = np.transpose(output_data[2].astype(np.float32) / 4, (0, 3, 1, 2)).view(1, 3, 12, 30, 30).transpose(0, 1, 3, 4, 2)
     yolo_outputs = [conv_out0, conv_out1, conv_out2]
 
-    # Decode output from YOLOv3
+        
     boxes, scores, classes = evaluate(yolo_outputs, image_size, class_names, anchors)
 
     if display:
@@ -252,7 +252,8 @@ If you wannt to run on webcam
 #         break
 #     if not run(frame, display=True):
 #         break
-If you want to run using OAK-D
+
+#If you want to run using OAK-D
 
 syncNN = True
 
@@ -275,13 +276,6 @@ camRgb.setInterleaved(False)
 camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
 camRgb.setFps(60)
 camRgb.preview.link(xoutRgb.input)
-  # Codec for saving video (XVID is a common choice)
-# fourcc = cv2.VideoWriter_fourcc(*'H265')  # H.265 codec
-
-# Define the codec for H.265 (HEVC) video
-
-# Create a VideoWriter object to save the video in .avi format with H.265 codec
-# out = cv2.VideoWriter('output.avi', fourcc, 20.0, (640, 480))  # Change filename, frame rate, and resolution as needed
 
 with dai.Device(pipeline) as device:
 
